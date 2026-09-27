@@ -9,7 +9,6 @@ import * as Browsers from "#ext/dom/browsers"
 import * as DomSelections from "#ext/dom/selections"
 import { def, nil } from "#ext/stdlib/existence"
 
-import type { MenuView } from "#componentActions/menu/menuView"
 import type { MoveView } from "#componentActions/move/moveView"
 import type { OutlineView } from "#componentActions/outline/outlineView"
 import type { ResizeView } from "#componentActions/resize/resizeView"
@@ -32,7 +31,6 @@ export interface TableStateProps {
   readonly selection: Getter<TableSelection>
   readonly scrollElement: Getter<HTMLElement>
   readonly rootEditor: Getter<EditorView>
-  readonly menuRootElement: Getter<HTMLElement>
   readonly extensions: Getter<readonly Extension[]>
   readonly markdownConfig: Getter<
     Pick<MarkdownConfig, "extensions" | "completeHTMLTags" | "pasteURLAsLink" | "htmlTagLanguage">
@@ -74,7 +72,6 @@ export class TableState {
   wrapperElement: HTMLElement | undefined
   tableElement: HTMLTableElement | undefined
   readonly scrollElement: HTMLElement
-  readonly menuRootElement: HTMLElement
 
   activeTable: boolean
 
@@ -86,7 +83,6 @@ export class TableState {
 
   activeHandle: { readonly state: "active" | "hover"; readonly handle: Handle } | undefined
 
-  menu: MenuView | undefined
   move: MoveView | undefined
   outline: OutlineView | undefined
   resize: ResizeView | undefined
@@ -199,7 +195,6 @@ export class TableState {
     selection,
     scrollElement,
     rootEditor,
-    menuRootElement,
     extensions,
     markdownConfig,
     globalKeyBindings,
@@ -232,7 +227,6 @@ export class TableState {
     this.wrapperElement = $state.raw(undefined)
     this.tableElement = $state.raw(undefined)
     this.scrollElement = $derived(scrollElement())
-    this.menuRootElement = $derived(menuRootElement())
 
     this.headerCellHighlighter = $derived(
       StateHighlighter.of(this.rootEditor.state, [tags.heading]),
@@ -250,22 +244,17 @@ export class TableState {
 
     this.activeHandle = $state.raw(undefined)
 
-    this.menu = $state.raw(undefined)
     this.move = $state.raw(undefined)
     this.outline = $state.raw(undefined)
     this.resize = $state.raw(undefined)
-    this.interactive = $derived(
-      nil(this.move) && nil(this.resize) && nil(this.menu) && nil(this.outline),
-    )
+    this.interactive = $derived(nil(this.move) && nil(this.resize) && nil(this.outline))
 
     this.pointerDown = $state.raw(false)
 
     const cursor = $derived.by(() => {
       if (!Browsers.hoverable(this.window)) return undefined
 
-      if (def(this.menu)) {
-        return "default"
-      } else if (def(this.activeHandle)) {
+      if (def(this.activeHandle)) {
         const { type, location } = this.activeHandle.handle
 
         if (type === "table") {

@@ -32,7 +32,7 @@ export default defineConfig({
       },
     }),
     analyzer({ enabled: false }),
-    externalizeDeps(),
+    externalizeDeps({ include: ["markedit-api"] }),
   ],
   test: {
     setupFiles: ["./testSupport/testSetup.ts"],

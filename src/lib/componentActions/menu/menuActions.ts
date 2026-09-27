@@ -1,13 +1,4 @@
-import { autoPlacement, computePosition, shift } from "@floating-ui/dom"
-import { on } from "svelte/events"
-
-import * as Nodes from "#ext/dom/nodes"
-import * as Numbers from "#ext/dom/numbers"
 import * as Strings from "#ext/dom/strings"
-import { nil } from "#ext/stdlib/existence"
-import * as Functions from "#ext/stdlib/functions"
-
-import * as CloseMenuKeys from "#componentActions/menu/closeMenuKeys"
 
 import type { HeaderHandle } from "#componentModels/table/handle/handle"
 import { TableSection } from "#componentModels/table/tableSection"
@@ -18,18 +9,21 @@ import * as CellLocations from "#core/models/cellLocations"
 import type { Point } from "#core/models/point"
 import type { RowOrCol } from "#core/models/rowOrCol"
 
+import { MarkEdit, type MenuItem } from "markedit-api"
+
 export interface MenuActionsProps {
-  readonly tableState: TableState
+  readonly tableState: Pick<
+    TableState,
+    "table" | "focusTable" | "activeHandle" | "outlinedSection" | "activeCell" | "anchorCell"
+  >
   readonly handle: HeaderHandle
   readonly point: Point
 }
 
 export class MenuActions {
-  private readonly tableState: TableState
+  private readonly tableState: MenuActionsProps["tableState"]
   private readonly handle: HeaderHandle
   private readonly point: Point
-
-  private removeEventListeners: (() => void) | undefined
 
   private get rowOrCol(): RowOrCol {
     return this.handle.location
@@ -40,24 +34,9 @@ export class MenuActions {
   }
 
   private open(): void {
-    const body = this.tableState.document.body
-    this.removeEventListeners = Functions.each(
-      on(body, "pointerdown", (event) => {
-        event.preventDefault()
-        if (nil(event.target) || !Nodes.contains(this.tableState.menuRootElement, event.target))
-          this.close()
-      }),
-      on(body, "wheel", (event) => event.preventDefault(), {
-        passive: false,
-      }),
-      on(body, "keydown", (event) => {
-        event.preventDefault()
-        if (CloseMenuKeys.pressed(event)) this.close()
-      }),
-    )
-
     this.tableState.focusTable()
-    this.tableState.activeHandle = { state: "active", handle: this.handle }
+    // Native menus own input tracking and expose no dismissal callback.
+    this.tableState.activeHandle = undefined
     this.tableState.outlinedSection = TableSection.of(
       this.rowOrCol === "row"
         ? {
@@ -77,74 +56,80 @@ export class MenuActions {
     this.tableState.activeCell = lastCell
     this.tableState.anchorCell = lastCell
 
-    const moveableBackward = this.index !== this.tableState.table.firstRowOrColIndex(this.rowOrCol)
-    const moveableForward = this.index !== this.tableState.table.lastRowOrColIndex(this.rowOrCol)
-    let moveable: "backward" | "forward" | boolean = false
-    if (moveableBackward) {
-      moveable = moveableForward ? true : "backward"
-    } else if (moveableForward) {
-      moveable = "forward"
+    const rowOrColumn = this.rowOrCol === "row" ? "row" : "column"
+    const items: MenuItem[] = []
+
+    if (this.rowOrCol === "col") {
+      items.push(
+        {
+          title: "Sort by column (A-Z)",
+          icon: "arrow.up",
+          action: () => this.clickSort("ascending"),
+        },
+        {
+          title: "Sort by column (Z-A)",
+          icon: "arrow.down",
+          action: () => this.clickSort("descending"),
+        },
+        { separator: true },
+        { title: "Align none", action: () => this.clickAlign("none") },
+        { title: "Align left", icon: "text.alignleft", action: () => this.clickAlign("left") },
+        {
+          title: "Align center",
+          icon: "text.aligncenter",
+          action: () => this.clickAlign("center"),
+        },
+        { title: "Align right", icon: "text.alignright", action: () => this.clickAlign("right") },
+        { separator: true },
+      )
     }
 
-    this.tableState.menu = {
-      type: this.rowOrCol,
-      capabilities: {
-        addable: true,
-        alignable: this.rowOrCol === "col",
-        clearable: true,
-        duplicatable: true,
-        moveable,
-        removable: !this.tableState.table.hasSingleRowOrCol(this.rowOrCol),
-        sortable: this.rowOrCol === "col",
-      },
-      clickAdd: (direction) => this.clickAdd(direction),
-      clickAlign: (alignment) => this.clickAlign(alignment),
-      clickClear: () => this.clickClear(),
-      clickDuplicate: () => this.clickDuplicate(),
-      clickMove: (direction) => this.clickMove(direction),
-      clickRemove: () => this.clickRemove(),
-      clickSort: (direction) => this.clickSort(direction),
-      computeTranslation: (element: HTMLElement) => this.computeTranslation(element),
-    }
-  }
-
-  private close(): void {
-    this.removeEventListeners?.()
-    this.tableState.menu = undefined
-    this.tableState.activeHandle = undefined
-  }
-
-  private async computeTranslation(menuElement: HTMLElement): Promise<Point> {
-    const position = await computePosition(
+    items.push(
       {
-        getBoundingClientRect: () => ({
-          x: this.point.x,
-          y: this.point.y,
-          top: this.point.y,
-          right: this.point.x,
-          bottom: this.point.y,
-          left: this.point.x,
-          width: 0,
-          height: 0,
-        }),
+        title: `Add ${rowOrColumn} ${this.rowOrCol === "row" ? "above" : "before"}`,
+        action: () => this.clickAdd("before"),
       },
-      menuElement,
       {
-        middleware: [
-          autoPlacement({
-            allowedPlacements:
-              this.rowOrCol === "row" ? ["right-start", "right-end"] : ["right-start", "right"],
-          }),
-          shift({ crossAxis: true }),
-        ],
+        title: `Add ${rowOrColumn} ${this.rowOrCol === "row" ? "below" : "after"}`,
+        action: () => this.clickAdd("after"),
       },
+      { separator: true },
     )
 
-    const win = Nodes.win(menuElement)
-    return {
-      x: Numbers.roundByDpr(position.x, win),
-      y: Numbers.roundByDpr(position.y, win),
+    const moveableBackward = this.index !== this.tableState.table.firstRowOrColIndex(this.rowOrCol)
+    const moveableForward = this.index !== this.tableState.table.lastRowOrColIndex(this.rowOrCol)
+    if (moveableBackward) {
+      items.push({
+        title: `Move ${rowOrColumn} ${this.rowOrCol === "row" ? "up" : "left"}`,
+        icon: this.rowOrCol === "row" ? "arrow.up" : "arrow.left",
+        action: () => this.clickMove("backward"),
+      })
     }
+    if (moveableForward) {
+      items.push({
+        title: `Move ${rowOrColumn} ${this.rowOrCol === "row" ? "down" : "right"}`,
+        icon: this.rowOrCol === "row" ? "arrow.down" : "arrow.right",
+        action: () => this.clickMove("forward"),
+      })
+    }
+    if (moveableBackward || moveableForward) items.push({ separator: true })
+
+    items.push(
+      {
+        title: `Duplicate ${rowOrColumn}`,
+        action: () => this.clickDuplicate(),
+      },
+      { title: `Clear ${rowOrColumn}`, action: () => this.clickClear() },
+    )
+    if (!this.tableState.table.hasSingleRowOrCol(this.rowOrCol)) {
+      items.push({
+        title: `Delete ${rowOrColumn}`,
+        icon: "trash",
+        action: () => this.clickRemove(),
+      })
+    }
+
+    MarkEdit.showContextMenu(items, this.point)
   }
 
   private clickAdd(direction: "before" | "after"): void {
@@ -163,23 +148,18 @@ export class MenuActions {
       this.tableState.activeCell = nextCell
       this.tableState.anchorCell = nextCell
     }
-
-    this.close()
   }
 
   private clickAlign(alignment: Alignment): void {
     this.tableState.table.setAlignmentAt(this.index, alignment)
-    this.close()
   }
 
   private clickClear(): void {
     this.tableState.table.clearRowOrCol(this.rowOrCol, this.index)
-    this.close()
   }
 
   private clickDuplicate(): void {
     this.tableState.table.duplicateRowOrColAt(this.rowOrCol, this.index)
-    this.close()
   }
 
   private clickMove(direction: "backward" | "forward"): void {
@@ -196,8 +176,6 @@ export class MenuActions {
     const nextCell = CellLocations.shift(this.rowOrCol, this.tableState.activeCell!, direction)
     this.tableState.activeCell = nextCell
     this.tableState.anchorCell = nextCell
-
-    this.close()
   }
 
   private clickRemove(): void {
@@ -213,8 +191,6 @@ export class MenuActions {
       this.tableState.activeCell = nextCell
       this.tableState.anchorCell = nextCell
     }
-
-    this.close()
   }
 
   private clickSort(direction: "ascending" | "descending"): void {
@@ -224,8 +200,6 @@ export class MenuActions {
         ? (first, second) => Strings.lexicographicalCompare(first.toString(), second.toString())
         : (first, second) => Strings.lexicographicalCompare(second.toString(), first.toString()),
     )
-
-    this.close()
   }
 
   static showMenu(props: MenuActionsProps): void {

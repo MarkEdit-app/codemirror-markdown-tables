@@ -16,19 +16,12 @@
 
   import * as BodyEvents from "#components/bodyEvents"
   import * as DocumentEvents from "#components/documentEvents"
-  import Portal from "#components/portal/Portal.svelte"
   import BlockingOverlay from "#components/table/blockingOverlay/BlockingOverlay.svelte"
   import Cell from "#components/table/cell/Cell.svelte"
   import CellEditor from "#components/table/cell/cellEditor/CellEditor.svelte"
   import * as CellEditorEvents from "#components/table/cell/cellEditor/cellEditorEvents"
   import CellView from "#components/table/cell/cellView/CellView.svelte"
   import Handle from "#components/table/handle/Handle.svelte"
-  import Menu from "#components/table/menu/Menu.svelte"
-  import MenuItem from "#components/table/menu/menuItem/MenuItem.svelte"
-  import * as MenuItemEvents from "#components/table/menu/menuItem/menuItemEvents"
-  import MenuItemIcon from "#components/table/menu/menuItem/menuItemIcon/MenuItemIcon.svelte"
-  import MenuItemText from "#components/table/menu/menuItem/menuItemText/MenuItemText.svelte"
-  import MenuSeparator from "#components/table/menu/menuSeparator/MenuSeparator.svelte"
   import SelectAllOverlay from "#components/table/selectAllOverlay/SelectAllOverlay.svelte"
   import * as TableEvents from "#components/table/tableEvents"
   import * as TableWrapperEvents from "#components/tableWrapperEvents"
@@ -42,7 +35,6 @@
     selection,
     scrollElement,
     rootEditor,
-    menuRootElement,
     extensions,
     markdownConfig,
     globalKeyBindings,
@@ -57,7 +49,6 @@
     selection: TableSelection
     scrollElement: HTMLElement
     rootEditor: EditorView
-    menuRootElement: HTMLElement
     extensions: readonly Extension[]
     markdownConfig: Pick<
       MarkdownConfig,
@@ -77,7 +68,6 @@
     selection: () => selection,
     scrollElement: () => scrollElement,
     rootEditor: () => rootEditor,
-    menuRootElement: () => menuRootElement,
     extensions: () => extensions,
     markdownConfig: () => markdownConfig,
     globalKeyBindings: () => globalKeyBindings,
@@ -222,128 +212,6 @@
       </tbody>
     {/if}
   </table>
-
-  {#if def(tableState.menu)}
-    {@const rowOrColumn = tableState.menu.type === "row" ? "row" : "column"}
-    <Portal to={tableState.menuRootElement}>
-      <!-- eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Safe, false positive -->
-      <Menu translate={(element) => alwaysDef(tableState.menu).computeTranslation(element)}>
-        {@const { addable, alignable, clearable, duplicatable, moveable, removable, sortable } =
-          tableState.menu.capabilities}
-        {#if sortable}
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "sort", direction: "ascending" }, tableState)}
-          >
-            <MenuItemIcon name="sort-ascending" />
-            <MenuItemText>Sort by {rowOrColumn} (A-Z)</MenuItemText>
-          </MenuItem>
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "sort", direction: "descending" }, tableState)}
-          >
-            <MenuItemIcon name="sort-descending" />
-            <MenuItemText>Sort by {rowOrColumn} (Z-A)</MenuItemText>
-          </MenuItem>
-          <MenuSeparator />
-        {/if}
-        {#if alignable}
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "align", alignment: "none" }, tableState)}
-          >
-            <MenuItemIcon name="align-none" />
-            <MenuItemText>Align none</MenuItemText>
-          </MenuItem>
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "align", alignment: "left" }, tableState)}
-          >
-            <MenuItemIcon name="align-left" />
-            <MenuItemText>Align left</MenuItemText>
-          </MenuItem>
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "align", alignment: "center" }, tableState)}
-          >
-            <MenuItemIcon name="align-center" />
-            <MenuItemText>Align center</MenuItemText>
-          </MenuItem>
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "align", alignment: "right" }, tableState)}
-          >
-            <MenuItemIcon name="align-right" />
-            <MenuItemText>Align right</MenuItemText>
-          </MenuItem>
-          <MenuSeparator />
-        {/if}
-        {#if addable}
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "add", direction: "before" }, tableState)}
-          >
-            <MenuItemIcon name="add-before" />
-            <MenuItemText
-              >Add {rowOrColumn} {rowOrColumn === "row" ? "above" : "before"}</MenuItemText
-            >
-          </MenuItem>
-          <MenuItem
-            onclick={() =>
-              MenuItemEvents.onclick({ action: "add", direction: "after" }, tableState)}
-          >
-            <MenuItemIcon name="add-after" />
-            <MenuItemText
-              >Add {rowOrColumn} {rowOrColumn === "row" ? "below" : "after"}</MenuItemText
-            >
-          </MenuItem>
-          <MenuSeparator />
-        {/if}
-        {#if moveable !== false}
-          {#if moveable === "backward" || moveable === true}
-            <MenuItem
-              onclick={() =>
-                MenuItemEvents.onclick({ action: "move", direction: "backward" }, tableState)}
-            >
-              <MenuItemIcon name={`move-${rowOrColumn === "row" ? "up" : "left"}`} />
-              <MenuItemText>Move {rowOrColumn} {rowOrColumn === "row" ? "up" : "left"}</MenuItemText
-              >
-            </MenuItem>
-          {/if}
-          {#if moveable === "forward" || moveable === true}
-            <MenuItem
-              onclick={() =>
-                MenuItemEvents.onclick({ action: "move", direction: "forward" }, tableState)}
-            >
-              <MenuItemIcon name={`move-${rowOrColumn === "row" ? "down" : "right"}`} />
-              <MenuItemText
-                >Move {rowOrColumn} {rowOrColumn === "row" ? "down" : "right"}</MenuItemText
-              >
-            </MenuItem>
-          {/if}
-          <MenuSeparator />
-        {/if}
-        {#if duplicatable}
-          <MenuItem onclick={() => MenuItemEvents.onclick({ action: "duplicate" }, tableState)}>
-            <MenuItemIcon name="duplicate" />
-            <MenuItemText>Duplicate {rowOrColumn}</MenuItemText>
-          </MenuItem>
-        {/if}
-        {#if clearable}
-          <MenuItem onclick={() => MenuItemEvents.onclick({ action: "clear" }, tableState)}>
-            <MenuItemIcon name="clear" />
-            <MenuItemText>Clear {rowOrColumn}</MenuItemText>
-          </MenuItem>
-        {/if}
-        {#if removable}
-          <MenuItem onclick={() => MenuItemEvents.onclick({ action: "remove" }, tableState)}>
-            <MenuItemIcon name="remove" />
-            <MenuItemText>Delete {rowOrColumn}</MenuItemText>
-          </MenuItem>
-        {/if}
-      </Menu>
-    </Portal>
-  {/if}
 
   {#each Handles.table as handle (handle)}
     <Handle

@@ -1,6 +1,6 @@
 import { redo, undo } from "@codemirror/commands"
 import type { EditorState } from "@codemirror/state"
-import { EditorView, getTooltip, type Rect, WidgetType } from "@codemirror/view"
+import { EditorView, type Rect, WidgetType } from "@codemirror/view"
 import { mount, unmount } from "svelte"
 
 import * as Widgets from "#ext/codemirror/view/widgets"
@@ -11,7 +11,6 @@ import * as Functions from "#ext/stdlib/functions"
 
 import { TableDescription } from "#codemirror/state/tableDescription.svelte"
 import * as TableEditorState from "#codemirror/state/tableEditorState"
-import { menuTooltip } from "#codemirror/tooltip/menuTooltip"
 import * as TableAnnotation from "#codemirror/transaction/tableAnnotation"
 
 import * as CellNodes from "#components/table/cell/cellNodes"
@@ -148,7 +147,6 @@ export class TableWidget extends WidgetType {
         globalKeyBindings,
         selectionType,
         lineWrapping,
-        menuRootElement: getTooltip(view, menuTooltip)!.dom,
         onUndo: () => undo(view),
         onRedo: () => redo(view),
         onNavigate: (direction: "before" | "after") => {

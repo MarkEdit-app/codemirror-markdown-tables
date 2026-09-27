@@ -1,6 +1,6 @@
 import { invertedEffects } from "@codemirror/commands"
 import { EditorState, type Extension } from "@codemirror/state"
-import { EditorView, showTooltip, ViewPlugin } from "@codemirror/view"
+import { EditorView, ViewPlugin } from "@codemirror/view"
 
 import { tableClipboardInputFilterSpec } from "#codemirror/clipboard/tableClipboardInputFilter"
 import type { TableConfig } from "#codemirror/config/tableConfig"
@@ -16,7 +16,6 @@ import { tableSelectionFilterSpec } from "#codemirror/format/tableSelectionFilte
 import { tablesStateField } from "#codemirror/state/tablesStateField"
 import { viewStateField } from "#codemirror/state/viewStateField"
 import { baseThemeSpec } from "#codemirror/theme/baseTheme"
-import { menuTooltip as menuTooltipSpec } from "#codemirror/tooltip/menuTooltip"
 import { tableEffectAnnotationExtenderSpec } from "#codemirror/transaction/tableEffectAnnotationExtender"
 import { tableInvertedEffectsSpec } from "#codemirror/transaction/tableInvertedEffects"
 import { ViewStateFieldPlugin } from "#codemirror/view/viewStateFieldPlugin"
@@ -44,7 +43,6 @@ export function of(config: TableConfig): Extension {
     // Wrap style with `:where()` to set CSS specificity to 0 and make it easy to override
     EditorView.theme({ ":where(:root:has(&))": config.style.props }),
     invertedEffects.of(tableInvertedEffectsSpec),
-    showTooltip.of(menuTooltipSpec),
     EditorState.transactionExtender.of(tableEffectAnnotationExtenderSpec),
     EditorState.transactionFilter.of(tableLineBreakCorrectionFilterSpec),
     EditorState.transactionFilter.of(tableDeletionFilterSpec),
