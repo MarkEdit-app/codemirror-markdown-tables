@@ -23,9 +23,11 @@ const inverseEvents = new Map([
   ...baseEvents.map((event) => [`${event}.redo`, `${event}.undo`]),
 ] as [TableEvent, TableEvent][])
 const invalidationEvents = new Set<TableEvent>([
+  "table.format",
   "table.correct.undo",
   "table.delete.undo",
   "table.format.undo",
+  "table.format.redo",
 ])
 const editHistoryModificationEvents = new Set<TableEvent>(["table.edit.undo", "table.edit.redo"])
 

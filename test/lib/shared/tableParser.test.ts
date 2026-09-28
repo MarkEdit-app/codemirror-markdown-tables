@@ -1,9 +1,45 @@
+import { ChangeSet, Text } from "@codemirror/state"
 import { describe, expect, it } from "vitest"
 
 import * as TableParser from "#core/tableParser"
 
 import { txt } from "../../../testSupport/helpers/txt"
 import { expectDef, expectNil } from "../../../testSupport/vitest/existence"
+
+describe("formatChanges", () => {
+  it.each([
+    "| a | b |\n| --- | --- |\n| one | please |",
+    "a|b\n---|---\nfirst|second",
+    "a|b\n---|---\n| first |",
+    "a|b\n---|---\nfirst|second|extra",
+    "a|b\n---|---\n||",
+    "||\n|-|\n||",
+    "| | wide |\n| --- | :---: |\n| value | |",
+    "a|b\n---|---\n| | last |",
+    "a|b\n---|---\none|<br> a\\|b<br>c <br>",
+    "a|b\n---|---\none|<br><br>",
+    "| a | b |\n| --- | --- |\n| cafe\u0301 | \u{1F600} |",
+  ])("produces exactly the normalized table for %s", (input) => {
+    const original = Text.of(input.split("\n"))
+    const formatted = TableParser.parse(original).text
+    const changes = ChangeSet.of(TableParser.formatChanges(original, formatted), original.length)
+    expect(changes.apply(original)).toEqual(formatted)
+  })
+
+  it("does not replace unchanged cell text", () => {
+    const original = txt`
+      | a | b |
+      | --- | --- |
+      | one | please |
+    `
+    const formatted = TableParser.parse(original).text
+    const changes = ChangeSet.of(TableParser.formatChanges(original, formatted), original.length)
+    const from = original.toString().indexOf("please")
+    changes.iterChanges((start, end) => {
+      expect(start < from + 6 && end > from).toBe(false)
+    })
+  })
+})
 
 describe("parse", () => {
   it("throws when not a table", () => {

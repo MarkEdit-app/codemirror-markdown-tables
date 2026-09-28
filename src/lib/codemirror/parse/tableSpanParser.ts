@@ -68,5 +68,11 @@ function formatSpacing(span: Span, { doc, lineBreak }: EditorState): ChangeSpec[
 function formatContent({ from, to }: Span, { doc }: EditorState): ChangeSpec[] {
   const text = doc.slice(from, to)
   const { text: standardizedText } = TableParser.parse(text)
-  return text.eq(standardizedText) ? [] : [{ from, to, insert: standardizedText }]
+  return text.eq(standardizedText)
+    ? []
+    : TableParser.formatChanges(text, standardizedText).map((change) => ({
+        ...change,
+        from: from + change.from,
+        to: from + change.to,
+      }))
 }

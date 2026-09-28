@@ -85,11 +85,16 @@ function unsanitizeString(actualString: string): string {
   return actualString.replaceAll("<br>", "\n").replaceAll("\\|", "|")
 }
 
-function trimWhitespace(text: string): string {
+export function trimStartingWhitespace(text: string): string {
   let trimmedText = text
   for (const startingWhitespacePattern of startingWhitespacePatterns) {
     trimmedText = trimmedText.replaceAll(startingWhitespacePattern, "")
   }
+  return trimmedText
+}
+
+function trimWhitespace(text: string): string {
+  let trimmedText = trimStartingWhitespace(text)
   for (const endingWhitespacePattern of endingWhitespacePatterns) {
     trimmedText = trimmedText.replaceAll(endingWhitespacePattern, "")
   }

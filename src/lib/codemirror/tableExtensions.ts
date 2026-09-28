@@ -10,7 +10,10 @@ import { editorFocusUpdaterSpec } from "#codemirror/focus/editorFocusUpdater"
 import { outsideTableFocusEffectSpec } from "#codemirror/focus/outsideTableFocusEffect"
 import { tableCursorMovementFilterSpec } from "#codemirror/format/tableCursorMovementFilter"
 import { tableDeletionFilterSpec } from "#codemirror/format/tableDeletionFilter"
-import { tableFormattingUpdaterSpec } from "#codemirror/format/tableFormattingUpdater"
+import {
+  tableFormattingFilterSpec,
+  tableFormattingUpdaterSpec,
+} from "#codemirror/format/tableFormattingUpdater"
 import { tableLineBreakCorrectionFilterSpec } from "#codemirror/format/tableLineBreakCorrectionFilter"
 import { tableSelectionFilterSpec } from "#codemirror/format/tableSelectionFilter"
 import { tablesStateField } from "#codemirror/state/tablesStateField"
@@ -44,6 +47,7 @@ export function of(config: TableConfig): Extension {
     EditorView.theme({ ":where(:root:has(&))": config.style.props }),
     invertedEffects.of(tableInvertedEffectsSpec),
     EditorState.transactionExtender.of(tableEffectAnnotationExtenderSpec),
+    EditorState.transactionFilter.of(tableFormattingFilterSpec),
     EditorState.transactionFilter.of(tableLineBreakCorrectionFilterSpec),
     EditorState.transactionFilter.of(tableDeletionFilterSpec),
     EditorState.transactionFilter.of(tableCursorMovementFilterSpec),

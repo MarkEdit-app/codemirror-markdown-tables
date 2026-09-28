@@ -33,21 +33,10 @@
 
 ## MarkEdit fork
 
-Row and column menus use `MarkEdit.showContextMenu` with SF Symbol icons instead
-of HTML menus and Floating UI. They require the MarkEdit host and are unavailable
-in the standalone browser demo. macOS manages their appearance and dismissal.
-
-The `prepare` script builds the JavaScript bundles and TypeScript declarations
-when installing from Git. Install scripts must be enabled; `dist` is not tracked
-in Git.
-
-CodeMirror and Lezer peers are also development dependencies so Yarn Classic can
-build the package in its isolated Git preparation directory without automatically
-installing peers. Keep their development and peer version ranges in sync.
-
-Vitest and its UI/coverage packages are pinned to `4.0.18` to avoid the
-[Yarn Classic/Vite linking issue](https://github.com/vitest-dev/vitest/issues/9859)
-during Git dependency preparation. Yarn Classic does not use `package-lock.json`.
+This is a fork of [ckant/codemirror-markdown-tables](https://github.com/ckant/codemirror-markdown-tables)
+for [MarkEdit](https://github.com/MarkEdit-app/MarkEdit).
+See the [changelog](CHANGELOG.md) for all differences from upstream, host requirements,
+and Git-installation notes.
 
 ## Features
 

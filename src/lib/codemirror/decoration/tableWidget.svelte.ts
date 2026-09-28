@@ -22,9 +22,9 @@ import * as TableSelectionValues from "#core/models/tableSelectionValues"
 export class TableWidget extends WidgetType {
   private readonly tableDescription: TableDescription
 
-  private widgetElement: HTMLElement | undefined
+  private measuredWidgetElement: HTMLElement | undefined
   private height: number
-  private destroyWidgetElement: (() => void) | undefined
+  private readonly cleanups = new WeakMap<HTMLElement, () => void>()
 
   get estimatedHeight(): number {
     // CodeMirror correctly measures the height automatically, but it still has issues
@@ -43,19 +43,17 @@ export class TableWidget extends WidgetType {
   }
 
   /**
-   * Called shortly after creation and after destroy() if the widget is later recreated.
+   * CodeMirror may request new DOM before destroying the previous DOM.
    */
   // eslint-disable-next-line @typescript-eslint/naming-convention -- WidgetType method
   toDOM(view: EditorView): HTMLElement {
-    if (def(this.widgetElement)) return this.widgetElement
-
-    const { widgetElement, destroyWidgetElement } = this.create(view)
-    this.widgetElement = widgetElement
-    this.destroyWidgetElement = destroyWidgetElement
+    const widgetElement = this.measuredWidgetElement ?? this.create(view)
+    this.measuredWidgetElement = undefined
 
     view.requestMeasure({
       read: () => {
-        this.height = widgetElement.getBoundingClientRect().height
+        if (this.cleanups.has(widgetElement))
+          this.height = widgetElement.getBoundingClientRect().height
       },
     })
 
@@ -66,17 +64,12 @@ export class TableWidget extends WidgetType {
    * Called whenever the table is removed or the widget is hidden due to scrolling the viewport.
    * May be called again to redestroy after the widget has been recreated.
    */
-  destroy(_dom: HTMLElement): void {
-    this.destroyWidgetElement?.()
-    this.destroyWidgetElement = undefined
-    this.widgetElement = undefined
-    this.height = Widgets.unknownHeight
+  destroy(dom: HTMLElement): void {
+    this.cleanups.get(dom)?.()
+    this.cleanups.delete(dom)
   }
 
-  private create(view: EditorView): {
-    widgetElement: HTMLElement
-    destroyWidgetElement: () => void
-  } {
+  private create(view: EditorView): HTMLElement {
     const widgetElement = Nodes.doc(view.dom).createElement("div")
     widgetElement.className = "tbl-table-widget"
     widgetElement.tabIndex = -1
@@ -172,13 +165,14 @@ export class TableWidget extends WidgetType {
 
     // ResizeObserver ensured `estimatedHeight` is always accurate for correct scrolling
     const disconnectObservers = ResizeObservers.onResize(widgetElement, ({ height }) => {
-      this.height = height
+      if (this.cleanups.has(widgetElement)) this.height = height
     })
 
-    return {
+    this.cleanups.set(
       widgetElement,
-      destroyWidgetElement: Functions.each(cleanupEffects, unmountComponent, disconnectObservers),
-    }
+      Functions.each(cleanupEffects, unmountComponent, disconnectObservers),
+    )
+    return widgetElement
   }
 
   static of(table: TableDescription, state: EditorState): TableWidget {
@@ -191,13 +185,10 @@ export class TableWidget extends WidgetType {
 
     const view = TableEditorState.getView(state)
     if (def(view)) {
-      const { widgetElement, destroyWidgetElement } = this.create(view)
-      this.widgetElement = widgetElement
-      this.destroyWidgetElement = destroyWidgetElement
-      this.height = Widgets.estimateHeight(view, widgetElement)
+      this.measuredWidgetElement = this.create(view)
+      this.height = Widgets.estimateHeight(view, this.measuredWidgetElement)
     } else {
-      this.widgetElement = undefined
-      this.destroyWidgetElement = undefined
+      this.measuredWidgetElement = undefined
       this.height = Widgets.unknownHeight
     }
   }

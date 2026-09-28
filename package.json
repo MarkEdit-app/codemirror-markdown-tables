@@ -1,6 +1,6 @@
 {
   "name": "codemirror-markdown-tables",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CodeMirror extension that turns Markdown tables into interactive components",
   "keywords": [
     "codemirror",

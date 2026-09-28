@@ -12,6 +12,7 @@ import type { Span } from "#ext/stdlib/span"
 import type { Alignment } from "#core/models/alignment"
 import type { TableProperties } from "#core/models/tableProperties"
 import * as TableFormatter from "#core/tableFormatter"
+import * as TextSanitizer from "#core/textSanitizer"
 
 const markdownTableParser = MarkdownParsers.table()
 
@@ -74,6 +75,98 @@ export function parseOrNil(maybeTableText: Text): TableProperties | undefined {
   if (!isSingleTable(tree)) return undefined
 
   return parseInternal(maybeTableText, tree)
+}
+
+/**
+ * Formats around cell contents instead of replacing the entire table, preserving position mapping.
+ */
+export function formatChanges(
+  unformattedText: Text,
+  formattedText: Text,
+): { from: number; to: number; insert: Text }[] {
+  const before = cellRows(unformattedText)
+  const after = cellRows(formattedText)
+  const changes: { from: number; to: number; insert: Text }[] = []
+  let from = 0
+  let newFrom = 0
+
+  function replace(to: number, newTo: number, cell = false): void {
+    const oldText = unformattedText.sliceString(from, to)
+    const newText = formattedText.sliceString(newFrom, newTo)
+    if (oldText !== newText) {
+      const contentStart =
+        cell && newText.length > 0
+          ? oldText.length - TextSanitizer.trimStartingWhitespace(oldText).length
+          : -1
+      if (
+        contentStart >= 0 &&
+        oldText.slice(contentStart, contentStart + newText.length) === newText
+      ) {
+        if (contentStart > 0) changes.push({ from, to: from + contentStart, insert: Text.empty })
+        const contentEnd = from + contentStart + newText.length
+        if (contentEnd < to) changes.push({ from: contentEnd, to, insert: Text.empty })
+      } else {
+        // Leave the following cell's delimiter and left padding intact.
+        let suffix = 0
+        while (
+          suffix < Math.min(oldText.length, newText.length) &&
+          oldText[oldText.length - suffix - 1] === newText[newText.length - suffix - 1]
+        )
+          ++suffix
+        changes.push({
+          from,
+          to: to - suffix,
+          insert: formattedText.slice(newFrom, newTo - suffix),
+        })
+      }
+    }
+    from = to
+    newFrom = newTo
+  }
+
+  before.forEach((row, rowIndex) => {
+    row.forEach((source, col) => {
+      const target = after[rowIndex]?.[col]
+      if (target === undefined) return
+      replace(source.from, target.from)
+      replace(source.to, target.to, true)
+    })
+  })
+  replace(unformattedText.length, formattedText.length)
+  return changes
+}
+
+function cellRows(text: Text): Span[][] {
+  const tree = markdownTableParser.parse(new DocInput(text))
+  if (!isSingleTable(tree)) throw new Error("Text is not a table")
+
+  const table = Cursors.firstChild(tree.cursor())
+  const rows = []
+  for (let hasRow = table.firstChild(); hasRow; hasRow = table.nextSibling()) {
+    if (MarkdownNodes.isTableDelimiter(table)) continue
+
+    const line = text.lineAt(table.from)
+    const contents = parseTableCellContentSpans(table)
+    const delimiters: Span[] = []
+    const children = table.node.cursor()
+    for (let hasChild = children.firstChild(); hasChild; hasChild = children.nextSibling()) {
+      if (MarkdownNodes.isTableDelimiter(children)) {
+        delimiters.push({ from: children.from, to: children.to })
+      }
+    }
+    const firstDelimiter = delimiters[0]
+    const start = firstDelimiter?.from === table.from ? delimiters.shift()!.to : line.from
+    rows.push(
+      contents.map((content, col) => {
+        const from = col === 0 ? start : delimiters[col - 1].to
+        const end = delimiters[col]?.from ?? line.to
+        // Empty cells have no syntax node; use the position after their left padding.
+        const empty = Math.min(from + 1, end)
+        return content.from === content.to ? { from: empty, to: empty } : content
+      }),
+    )
+  }
+  return rows
 }
 
 function parseInternal(unsafeText: Text, tree: Tree): TableProperties {
