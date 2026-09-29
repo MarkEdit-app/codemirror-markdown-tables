@@ -11,12 +11,14 @@ export function of({
   lineBreak,
   rows,
   cols,
+  label,
 }: {
   pos: number
   doc: Text
   lineBreak: string
   rows: number
   cols: number
+  label: (rows: number, cols: number) => string
 }): Completion {
   const [headerRow, ...dataRows] = Arrays.repeat(`${"|   ".repeat(cols)}|`, { count: rows })
   const alignmentRow = `${"| - ".repeat(cols)}|`
@@ -30,9 +32,7 @@ export function of({
   const table = `${before?.insert ?? ""}${[headerRow, alignmentRow, ...dataRows].join(lineBreak)}${after?.insert ?? ""}`
 
   return {
-    // Unicode multiplication sign (\u00d7) looks slightly better than `x` (e.g. 4x4 table)
-    // Using raw unicode to keep code ascii
-    label: `${rows}\u00d7${cols} table`,
+    label: label(rows, cols),
     type: "table",
     apply: (view, completion) => {
       view.dispatch({

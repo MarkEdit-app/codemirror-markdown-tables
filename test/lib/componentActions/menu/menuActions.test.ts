@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { defaultTableStrings, type TableStrings } from "#codemirror/config/tableStrings"
+
 import { MenuActions, type MenuActionsProps } from "#componentActions/menu/menuActions"
 
 import type { HeaderHandle } from "#componentModels/table/handle/handle"
@@ -25,6 +27,7 @@ function openMenu(
     | z    | 2     |
     | a    | 1     |
   `),
+  strings: TableStrings = defaultTableStrings,
 ): { tableState: MenuActionsProps["tableState"]; items: MenuItem[] } {
   const tableState: MenuActionsProps["tableState"] = {
     table,
@@ -33,6 +36,7 @@ function openMenu(
     outlinedSection: undefined,
     activeCell: undefined,
     anchorCell: undefined,
+    strings,
   }
   MenuActions.showMenu({
     tableState,
@@ -128,6 +132,15 @@ describe("native table menus", () => {
   it("uses a left arrow for moving a column left", () => {
     const { items } = openMenu("col", 1)
     expect(items.find((item) => item.title === "Move column left")?.icon).toBe("arrow.left")
+  })
+
+  it("uses configured strings without changing other defaults", () => {
+    const strings = { ...defaultTableStrings, addRowAbove: "Zeile oberhalb hinzuf\u00fcgen" }
+    const { items } = openMenu("row", 1, undefined, strings)
+    expect(items.map((item) => item.title ?? "separator")).toContain(
+      "Zeile oberhalb hinzuf\u00fcgen",
+    )
+    expect(items.map((item) => item.title ?? "separator")).toContain("Add row below")
   })
 
   it.each(["row", "col"] as const)("omits move and delete for a single %s", (location) => {

@@ -4,6 +4,7 @@ import { type KeyBinding } from "@codemirror/view"
 import type { MarkdownExtension } from "@lezer/markdown"
 
 import * as TableConfigs from "#codemirror/config/tableConfigs"
+import type { TableStrings } from "#codemirror/config/tableStrings"
 import type { TableStyle } from "#codemirror/config/tableStyle"
 import type { TableTheme } from "#codemirror/config/tableTheme"
 import * as TableExtensions from "#codemirror/tableExtensions"
@@ -11,6 +12,7 @@ import * as TableExtensions from "#codemirror/tableExtensions"
 export type { Defined } from "#ext/stdlib/utilityTypes"
 export { TableTheme, type TableThemeProps } from "#codemirror/config/tableTheme"
 export { TableStyle, type TableStyleProps } from "#codemirror/config/tableStyle"
+export { defaultTableStrings, type TableStrings } from "#codemirror/config/tableStrings"
 
 /**
  * The optional configuration for the {@link markdownTables} extension.
@@ -19,6 +21,14 @@ export { TableStyle, type TableStyleProps } from "#codemirror/config/tableStyle"
  * Properties that are set to `undefined` or omitted take the default values.
  */
 export interface MarkdownTablesConfig {
+  /**
+   * User-facing strings for table menus.
+   *
+   * Specify only the strings that need to be overridden. Omitted strings use
+   * their English defaults from {@link defaultTableStrings}.
+   */
+  readonly strings?: Partial<TableStrings> | undefined
+
   /**
    * Color scheme for the table.
    *

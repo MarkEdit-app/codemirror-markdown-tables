@@ -228,6 +228,24 @@ Optional config passed into the `markdownTables()` function to customize the cor
 | `markdownConfig`    | `MarkdownConfig`                                           | `{}`                                                 | Markdown language configuration for the table cell editor<br><br>The CodeMirror _editor embedded inside cells_ calls the [`markdown()` function in `@codemirror/lang-markdown`](https://github.com/codemirror/lang-markdown?tab=readme-ov-file#user-content-markdown) with the specified options<br><br>The table cell editor doesn't automatically inherit the _root_ CodeMirror Markdown language configuration<br><br>[See `@codemirror/lang-markdown` for descriptions](https://github.com/codemirror/lang-markdown?tab=readme-ov-file#user-content-markdown^config)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `globalKeyBindings` | `KeyBinding[]`                                             | `[]`                                                 | Keyboard shortcuts for the table cell editor that delegate to the _root_ CodeMirror editor<br><br>Keyboard shortcuts specified here execute actions on the _root_ CodeMirror editor, rather than the CodeMirror editor _embedded inside cells_<br>They operate on the text of the document _as a whole_, rather than the text _inside the cell_ in isolation<br><br>Specify KeyBindings from [`historyKeymap`](https://codemirror.net/docs/ref/#commands.historyKeymap) or similar here to enable history shortcuts while inside the cell editor<br>[`historyKeymap`](https://codemirror.net/docs/ref/#commands.historyKeymap) defines keyboard shortcuts like <kbd>Ctrl+Z</kbd>/<kbd>Cmd+Z</kbd> which should undo across the _document_ text rather than just the _cell_ text<br>Another example is [`searchKeymap`](https://codemirror.net/docs/ref/#search.searchKeymap) which defines keyboard shortcuts that should search across the entire _document_ text rather than just the _cell_ text<br><br>Conversely, specify KeyBindings from [`defaultKeymap`](https://codemirror.net/docs/ref/#commands.defaultKeymap) in **`extensions`** instead, since these keyboard shortcuts operate on the CodeMirror editor _embedded inside cells_ and the text _inside the cell_ in isolation                                                                                                                                                |
 
+#### Localized strings
+
+Pass partial `strings` overrides to `markdownTables()` for native table menus and
+to `markdownTableAutocompleter()` for completion labels. Omitted strings retain
+their English values from `defaultTableStrings`.
+
+```typescript
+import { markdownTableAutocompleter, markdownTables } from "codemirror-markdown-tables"
+
+const strings = {
+  addRowAbove: "Zeile oberhalb hinzuf\u00fcgen",
+  tableCompletion: (rows: number, cols: number) => `${rows} \u00d7 ${cols} Tabelle`,
+}
+
+markdownTables({ strings })
+markdownTableAutocompleter({ strings })
+```
+
 #### Table theme
 
 A theme is a collection of properties that define the CSS color scheme

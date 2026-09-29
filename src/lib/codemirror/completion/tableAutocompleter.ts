@@ -1,6 +1,7 @@
 import { type SyncCompletionSource } from "@codemirror/autocomplete"
 
 import * as TableCompletion from "#codemirror/completion/tableCompletion"
+import { resolveTableStrings, type TableStrings } from "#codemirror/config/tableStrings"
 
 const defaultOptions = [
   { rows: 2, cols: 2 },
@@ -16,8 +17,10 @@ const defaultOptions = [
  */
 export function of(config?: {
   options?: readonly { readonly rows: number; readonly cols: number }[]
+  strings?: Partial<TableStrings>
 }): SyncCompletionSource {
   const options = config?.options ?? defaultOptions
+  const strings = resolveTableStrings(config?.strings)
 
   return ({ state, pos }) => {
     const line = state.doc.lineAt(pos)
@@ -34,7 +37,7 @@ export function of(config?: {
     return {
       from: pos,
       options: options.map(({ rows, cols }) =>
-        TableCompletion.of({ pos, doc, lineBreak, rows, cols }),
+        TableCompletion.of({ pos, doc, lineBreak, rows, cols, label: strings.tableCompletion }),
       ),
     }
   }

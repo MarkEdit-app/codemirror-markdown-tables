@@ -3,6 +3,7 @@ import { type CompletionSource } from "@codemirror/autocomplete"
 import * as Validate from "#ext/stdlib/validate"
 
 import * as TableAutocompleter from "#codemirror/completion/tableAutocompleter"
+import type { TableStrings } from "#codemirror/config/tableStrings"
 
 /**
  * Creates a {@link CompletionSource} that shows an autocomplete menu for creating tables.
@@ -16,6 +17,8 @@ import * as TableAutocompleter from "#codemirror/completion/tableAutocompleter"
  *
  * `config.options` - The optional list of completions shown in the autocomplete popup.
  * Defaults to `[2x2, 3x3, 4x4]`.
+ *
+ * `config.strings` - Optional user-facing strings. Omitted strings use their English defaults.
  *
  * @example Add an extension that autocompletes a table after typing `|`.
  * ```typescript
@@ -52,6 +55,7 @@ import * as TableAutocompleter from "#codemirror/completion/tableAutocompleter"
  */
 export function markdownTableAutocompleter(config?: {
   readonly options?: readonly { readonly rows: number; readonly cols: number }[]
+  readonly strings?: Partial<TableStrings>
 }): CompletionSource {
   Validate.optionalEach(config?.options, ({ rows, cols }) => {
     Validate.positiveIntegers(rows, cols, "options[].{ rows, cols } must be positive integers")

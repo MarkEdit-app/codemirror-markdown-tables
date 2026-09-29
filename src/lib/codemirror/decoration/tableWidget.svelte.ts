@@ -125,7 +125,7 @@ export class TableWidget extends WidgetType {
       })
     })
 
-    const { extensions, markdownConfig, globalKeyBindings, selectionType, lineWrapping } =
+    const { extensions, markdownConfig, globalKeyBindings, selectionType, lineWrapping, strings } =
       TableEditorState.getTableConfig(view.state)
 
     const component = mount(TableComponent, {
@@ -140,6 +140,7 @@ export class TableWidget extends WidgetType {
         globalKeyBindings,
         selectionType,
         lineWrapping,
+        strings,
         onUndo: () => undo(view),
         onRedo: () => redo(view),
         onNavigate: (direction: "before" | "after") => {

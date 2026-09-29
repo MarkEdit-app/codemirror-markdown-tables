@@ -1,6 +1,11 @@
 import type { TableConfig } from "#codemirror/config/tableConfig"
+import { resolveTableStrings, type TableStrings } from "#codemirror/config/tableStrings"
 import { TableStyle } from "#codemirror/config/tableStyle"
 import { TableTheme } from "#codemirror/config/tableTheme"
+
+type TableConfigOptions = Omit<Partial<TableConfig>, "strings"> & {
+  readonly strings?: Partial<TableStrings>
+}
 
 /**
  * Creates a {@link TableConfig} with defaults overridden by the given {@link config}.
@@ -8,6 +13,7 @@ import { TableTheme } from "#codemirror/config/tableTheme"
  * Defaults to the following:
  * ```typescript
  * {
+ *   strings: defaultTableStrings,
  *   theme: { light: TableTheme.light, dark: TableTheme.dark },
  *   style: TableStyle.default,
  *   selectionType: "codemirror",
@@ -24,8 +30,9 @@ import { TableTheme } from "#codemirror/config/tableTheme"
  * }
  * ```
  */
-export function of(config?: Partial<TableConfig>): TableConfig {
+export function of(config?: TableConfigOptions): TableConfig {
   return {
+    strings: resolveTableStrings(config?.strings),
     theme: config?.theme ?? { light: TableTheme.light, dark: TableTheme.dark },
     style: config?.style ?? TableStyle.default,
     selectionType: config?.selectionType ?? "codemirror",

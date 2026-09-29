@@ -14,7 +14,13 @@ import { MarkEdit, type MenuItem } from "markedit-api"
 export interface MenuActionsProps {
   readonly tableState: Pick<
     TableState,
-    "table" | "focusTable" | "activeHandle" | "outlinedSection" | "activeCell" | "anchorCell"
+    | "table"
+    | "focusTable"
+    | "activeHandle"
+    | "outlinedSection"
+    | "activeCell"
+    | "anchorCell"
+    | "strings"
   >
   readonly handle: HeaderHandle
   readonly point: Point
@@ -56,41 +62,45 @@ export class MenuActions {
     this.tableState.activeCell = lastCell
     this.tableState.anchorCell = lastCell
 
-    const rowOrColumn = this.rowOrCol === "row" ? "row" : "column"
+    const strings = this.tableState.strings
     const items: MenuItem[] = []
 
     if (this.rowOrCol === "col") {
       items.push(
         {
-          title: "Sort by column (A-Z)",
+          title: strings.sortColumnAscending,
           icon: "arrow.up",
           action: () => this.clickSort("ascending"),
         },
         {
-          title: "Sort by column (Z-A)",
+          title: strings.sortColumnDescending,
           icon: "arrow.down",
           action: () => this.clickSort("descending"),
         },
         { separator: true },
-        { title: "Align none", action: () => this.clickAlign("none") },
-        { title: "Align left", icon: "text.alignleft", action: () => this.clickAlign("left") },
+        { title: strings.alignNone, action: () => this.clickAlign("none") },
+        { title: strings.alignLeft, icon: "text.alignleft", action: () => this.clickAlign("left") },
         {
-          title: "Align center",
+          title: strings.alignCenter,
           icon: "text.aligncenter",
           action: () => this.clickAlign("center"),
         },
-        { title: "Align right", icon: "text.alignright", action: () => this.clickAlign("right") },
+        {
+          title: strings.alignRight,
+          icon: "text.alignright",
+          action: () => this.clickAlign("right"),
+        },
         { separator: true },
       )
     }
 
     items.push(
       {
-        title: `Add ${rowOrColumn} ${this.rowOrCol === "row" ? "above" : "before"}`,
+        title: this.rowOrCol === "row" ? strings.addRowAbove : strings.addColumnBefore,
         action: () => this.clickAdd("before"),
       },
       {
-        title: `Add ${rowOrColumn} ${this.rowOrCol === "row" ? "below" : "after"}`,
+        title: this.rowOrCol === "row" ? strings.addRowBelow : strings.addColumnAfter,
         action: () => this.clickAdd("after"),
       },
       { separator: true },
@@ -100,14 +110,14 @@ export class MenuActions {
     const moveableForward = this.index !== this.tableState.table.lastRowOrColIndex(this.rowOrCol)
     if (moveableBackward) {
       items.push({
-        title: `Move ${rowOrColumn} ${this.rowOrCol === "row" ? "up" : "left"}`,
+        title: this.rowOrCol === "row" ? strings.moveRowUp : strings.moveColumnLeft,
         icon: this.rowOrCol === "row" ? "arrow.up" : "arrow.left",
         action: () => this.clickMove("backward"),
       })
     }
     if (moveableForward) {
       items.push({
-        title: `Move ${rowOrColumn} ${this.rowOrCol === "row" ? "down" : "right"}`,
+        title: this.rowOrCol === "row" ? strings.moveRowDown : strings.moveColumnRight,
         icon: this.rowOrCol === "row" ? "arrow.down" : "arrow.right",
         action: () => this.clickMove("forward"),
       })
@@ -116,14 +126,17 @@ export class MenuActions {
 
     items.push(
       {
-        title: `Duplicate ${rowOrColumn}`,
+        title: this.rowOrCol === "row" ? strings.duplicateRow : strings.duplicateColumn,
         action: () => this.clickDuplicate(),
       },
-      { title: `Clear ${rowOrColumn}`, action: () => this.clickClear() },
+      {
+        title: this.rowOrCol === "row" ? strings.clearRow : strings.clearColumn,
+        action: () => this.clickClear(),
+      },
     )
     if (!this.tableState.table.hasSingleRowOrCol(this.rowOrCol)) {
       items.push({
-        title: `Delete ${rowOrColumn}`,
+        title: this.rowOrCol === "row" ? strings.deleteRow : strings.deleteColumn,
         icon: "trash",
         action: () => this.clickRemove(),
       })

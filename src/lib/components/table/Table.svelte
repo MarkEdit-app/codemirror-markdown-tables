@@ -10,6 +10,8 @@
   import * as Functions from "#ext/stdlib/functions"
   import { alwaysDef, type number_, typed } from "#ext/webstorm/workarounds"
 
+  import type { TableStrings } from "#codemirror/config/tableStrings"
+
   import * as CellViewRenderer from "#componentModels/table/cell/cellView/cellViewRenderer"
   import * as Handles from "#componentModels/table/handle/handles"
   import { TableState } from "#componentModels/table/tableState.svelte"
@@ -40,6 +42,7 @@
     globalKeyBindings,
     selectionType,
     lineWrapping,
+    strings,
     onUndo,
     onRedo,
     onNavigate,
@@ -57,6 +60,7 @@
     globalKeyBindings: readonly KeyBinding[]
     selectionType: "codemirror" | "native"
     lineWrapping: "wrap" | "nowrap"
+    strings: TableStrings
     onUndo: () => void
     onRedo: () => void
     onNavigate: (direction: "before" | "after") => void
@@ -73,6 +77,7 @@
     globalKeyBindings: () => globalKeyBindings,
     selectionType: () => selectionType,
     lineWrapping: () => lineWrapping,
+    strings: () => strings,
     onUndo: () => onUndo,
     onRedo: () => onRedo,
     onNavigate: () => onNavigate,

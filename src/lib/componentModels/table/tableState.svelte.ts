@@ -9,6 +9,8 @@ import * as Browsers from "#ext/dom/browsers"
 import * as DomSelections from "#ext/dom/selections"
 import { def, nil } from "#ext/stdlib/existence"
 
+import type { TableStrings } from "#codemirror/config/tableStrings"
+
 import type { MoveView } from "#componentActions/move/moveView"
 import type { OutlineView } from "#componentActions/outline/outlineView"
 import type { ResizeView } from "#componentActions/resize/resizeView"
@@ -38,6 +40,7 @@ export interface TableStateProps {
   readonly globalKeyBindings: Getter<readonly KeyBinding[]>
   readonly selectionType: Getter<"codemirror" | "native">
   readonly lineWrapping: Getter<"wrap" | "nowrap">
+  readonly strings: Getter<TableStrings>
   readonly onUndo: Getter<() => void>
   readonly onRedo: Getter<() => void>
   readonly onNavigate: Getter<(direction: "before" | "after") => void>
@@ -60,6 +63,7 @@ export class TableState {
   readonly globalKeyBindings: readonly KeyBinding[]
   readonly selectionType: "codemirror" | "native"
   readonly lineWrapping: "wrap" | "nowrap"
+  readonly strings: TableStrings
 
   private readonly onUndo: () => void
   private readonly onRedo: () => void
@@ -200,6 +204,7 @@ export class TableState {
     globalKeyBindings,
     selectionType,
     lineWrapping,
+    strings,
     onUndo,
     onRedo,
     onNavigate,
@@ -223,6 +228,7 @@ export class TableState {
     this.globalKeyBindings = $derived(globalKeyBindings())
     this.selectionType = $derived(selectionType())
     this.lineWrapping = $derived(lineWrapping())
+    this.strings = $derived(strings())
 
     this.wrapperElement = $state.raw(undefined)
     this.tableElement = $state.raw(undefined)

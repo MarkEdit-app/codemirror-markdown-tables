@@ -12,7 +12,15 @@ The fork starts from upstream v1.0.1, including its
 The v1.0.2 entry below includes all fork-specific changes since that baseline;
 earlier entries describe upstream releases.
 
-## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.0.2...HEAD)
+## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.1.0...HEAD)
+
+## [1.1.0](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.1.0) - 2026-09-29
+
+### Added
+
+- Add partial `strings` configuration to `markdownTables()` and
+  `markdownTableAutocompleter()` for localizing native table menus and table-size
+  completion labels. Omitted strings retain their English defaults.
 
 ## [1.0.2](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.0.2) - 2026-09-28
 

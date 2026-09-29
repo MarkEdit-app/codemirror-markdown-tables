@@ -2,6 +2,7 @@ import type { MarkdownConfig } from "@codemirror/lang-markdown"
 import type { Extension } from "@codemirror/state"
 import type { KeyBinding } from "@codemirror/view"
 
+import type { TableStrings } from "#codemirror/config/tableStrings"
 import { TableStyle } from "#codemirror/config/tableStyle"
 import { TableTheme } from "#codemirror/config/tableTheme"
 
@@ -11,6 +12,7 @@ export type CellEditorMarkdownConfig = Pick<
 >
 
 export interface TableConfig {
+  readonly strings: TableStrings
   readonly theme: TableTheme | { readonly light: TableTheme; readonly dark: TableTheme }
   readonly style: TableStyle
   readonly selectionType: "codemirror" | "native"
