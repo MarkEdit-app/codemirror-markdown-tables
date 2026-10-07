@@ -66,8 +66,8 @@ export const tableFormattingUpdaterSpec: UpdateListenerSpec = ({
   if (!docChanged && !selectionSet && EditorStates.hasHistory(state)) return
   if (transactions.some((it) => TableTransactions.hasTableEvent(it))) return
 
-  const { formatting } = TableEditorState.getTableState(state)
-  if (Arrays.isEmpty(formatting)) return
+  const { complete, formatting } = TableEditorState.getTableState(state)
+  if (!complete || Arrays.isEmpty(formatting)) return
 
   const formattingChangeSet = ChangeSet.of(formatting, state.doc.length, state.lineBreak)
   const selection = state.selection.map(formattingChangeSet)

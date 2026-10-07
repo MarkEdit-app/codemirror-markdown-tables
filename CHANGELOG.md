@@ -12,7 +12,14 @@ The fork starts from upstream v1.0.1, including its
 The v1.0.2 entry below includes all fork-specific changes since that baseline;
 earlier entries describe upstream releases.
 
-## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.1.0...HEAD)
+## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.2.0...HEAD)
+
+## [1.2.0](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.2.0) - 2026-10-07
+
+### Fixed
+
+- Skip automatic table formatting computed from an incomplete syntax tree,
+  preventing blank lines from being inserted inside a table while opening a document.
 
 ## [1.1.0](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.1.0) - 2026-09-29
 
