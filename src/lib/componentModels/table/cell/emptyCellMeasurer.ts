@@ -3,7 +3,10 @@ import type { TableState } from "#componentModels/table/tableState.svelte"
 import * as CellNodes from "#components/table/cell/cellNodes"
 import * as CellViewNodes from "#components/table/cell/cellView/cellViewNodes"
 
-export function measure(tableState: TableState): { width: number; height: number } {
+export function measure(tableState: Pick<TableState, "table" | "tableElement">): {
+  width: number
+  height: number
+} {
   const cellElement = CellNodes.descendentCell(
     tableState.tableElement!,
     tableState.table.firstCellLocation,

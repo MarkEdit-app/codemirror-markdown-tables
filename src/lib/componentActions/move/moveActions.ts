@@ -14,14 +14,28 @@ import type { RowOrCol } from "#core/models/rowOrCol"
 
 export interface MoveActionsProps {
   readonly event: PointerEvent
-  readonly tableState: TableState
+  readonly tableState: Pick<
+    TableState,
+    | "table"
+    | "outlinedSection"
+    | "move"
+    | "activeHandle"
+    | "activeCell"
+    | "anchorCell"
+    | "focusTable"
+    | "scrollElement"
+    | "rootScrollElement"
+    | "scrollOffsetX"
+    | "scrollOffsetY"
+    | "tableElement"
+  >
   readonly rowOrCol: RowOrCol
   readonly index: number
   readonly onClick: () => void
 }
 
 export class MoveActions {
-  private readonly tableState: TableState
+  private readonly tableState: MoveActionsProps["tableState"]
   private readonly rowOrCol: RowOrCol
   private readonly index: number
   private readonly onClick: () => void
@@ -53,10 +67,21 @@ export class MoveActions {
     this.tableState.focusTable()
 
     const target = Nodes.htmlElement(event.target)
+    const releasePointer = PointerEvents.capturePointer(event, target)
     this.removeEventListeners = Functions.each(
-      PointerEvents.capturePointer(event, target),
-      on(target, "pointermove", (e) => this.drag(e)),
-      on(target, "pointerup", () => this.end()),
+      on(target, "pointermove", (e) => {
+        if (e.pointerId === event.pointerId) this.drag(e)
+      }),
+      on(target, "pointerup", (e) => {
+        if (e.pointerId === event.pointerId) this.end()
+      }),
+      on(target, "pointercancel", (e) => {
+        if (e.pointerId === event.pointerId) this.end(true)
+      }),
+      on(target, "lostpointercapture", (e) => {
+        if (e.pointerId === event.pointerId) this.end(true)
+      }),
+      releasePointer,
     )
   }
 
@@ -71,9 +96,18 @@ export class MoveActions {
     })
   }
 
-  private end(): void {
-    this.removeEventListeners?.()
+  private end(cancelled = false): void {
+    const removeEventListeners = this.removeEventListeners
+    if (removeEventListeners === undefined) return
+    this.removeEventListeners = undefined
+    removeEventListeners()
     this.autoScroller.destroy()
+
+    if (cancelled) {
+      this.tableState.move = undefined
+      this.tableState.activeHandle = undefined
+      return
+    }
 
     const endView = this.moveTracker.end()
     if (endView.moved) {

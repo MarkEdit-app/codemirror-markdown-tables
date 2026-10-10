@@ -58,7 +58,6 @@ export const cellEditorTheme: ThemeSpec = {
     margin: 0,
     padding: "0 1px",
     "line-height": 1.5,
-    "touch-action": "none",
     "font-family": "var(--tbl-style-font-family)",
     "font-size": "var(--tbl-style-font-size)",
     color: "var(--tbl-theme-text-color)",

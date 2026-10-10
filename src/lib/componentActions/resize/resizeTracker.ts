@@ -13,7 +13,7 @@ import { type RowOrCol } from "#core/models/rowOrCol"
 import * as RowsOrCols from "#core/models/rowsOrCols"
 
 export interface ResizeTrackerProps {
-  readonly tableState: TableState
+  readonly tableState: Pick<TableState, "table" | "activeCell" | "anchorCell" | "outlinedSection">
   readonly handle: ResizeHandle
   readonly position: Point
   readonly cellSizePixels: { row: number; col: number }
@@ -21,7 +21,7 @@ export interface ResizeTrackerProps {
 }
 
 export class ResizeTracker {
-  private readonly tableState: TableState
+  private readonly tableState: ResizeTrackerProps["tableState"]
   private readonly type: RowOrCol | "table"
   private readonly initialHandle: BorderHandle | TableHandle
   private readonly initialRowOrColCount: { readonly row: number; readonly col: number }

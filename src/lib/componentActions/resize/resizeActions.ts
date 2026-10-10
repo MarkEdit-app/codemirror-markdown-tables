@@ -15,12 +15,22 @@ import type { TableState } from "#componentModels/table/tableState.svelte"
 
 export interface ResizeActionProps {
   readonly event: PointerEvent
-  readonly tableState: TableState
+  readonly tableState: Pick<
+    TableState,
+    | "table"
+    | "tableElement"
+    | "resize"
+    | "activeHandle"
+    | "activeCell"
+    | "anchorCell"
+    | "outlinedSection"
+    | "focusTable"
+  >
   readonly handle: ResizeHandle
 }
 
 export class ResizeActions {
-  private readonly tableState: TableState
+  private readonly tableState: ResizeActionProps["tableState"]
   private readonly resizeTracker: ResizeTracker
 
   private removeEventListeners: (() => void) | undefined
@@ -35,10 +45,22 @@ export class ResizeActions {
 
     this.tableState.focusTable()
 
+    const target = this.tableState.tableElement!
+    const releasePointer = PointerEvents.capturePointer(event, target)
     this.removeEventListeners = Functions.each(
-      PointerEvents.capturePointer(event, this.tableState.tableElement!),
-      on(this.tableState.tableElement!, "pointermove", (e) => this.drag(e)),
-      on(this.tableState.tableElement!, "pointerup", () => this.end()),
+      on(target, "pointermove", (e) => {
+        if (e.pointerId === event.pointerId) this.drag(e)
+      }),
+      on(target, "pointerup", (e) => {
+        if (e.pointerId === event.pointerId) this.end()
+      }),
+      on(target, "pointercancel", (e) => {
+        if (e.pointerId === event.pointerId) this.end(true)
+      }),
+      on(target, "lostpointercapture", (e) => {
+        if (e.pointerId === event.pointerId) this.end(true)
+      }),
+      releasePointer,
     )
   }
 
@@ -58,8 +80,17 @@ export class ResizeActions {
     }
   }
 
-  private end(): void {
-    this.removeEventListeners?.()
+  private end(cancelled = false): void {
+    const removeEventListeners = this.removeEventListeners
+    if (removeEventListeners === undefined) return
+    this.removeEventListeners = undefined
+    removeEventListeners()
+
+    if (cancelled) {
+      this.tableState.activeHandle = undefined
+      this.tableState.resize = undefined
+      return
+    }
 
     const resizeResult = this.resizeTracker.end()
 

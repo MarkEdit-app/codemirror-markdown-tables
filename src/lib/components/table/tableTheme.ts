@@ -12,13 +12,11 @@ export const tableTheme: ThemeSpec = {
     position: "relative",
     width: "fit-content",
     "white-space-collapse": "collapse",
-    "touch-action": "none",
   },
   ".tbl-table": {
     "border-collapse": "separate",
     "border-spacing": 0,
     overflow: "visible",
-    "touch-action": "none",
 
     "&:focus-visible": {
       outline: "none",

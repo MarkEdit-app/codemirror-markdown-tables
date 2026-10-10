@@ -97,6 +97,10 @@
         capture: true,
         passive: true,
       }),
+      on(tableState.document.body, "pointercancel", () => BodyEvents.onpointerup(tableState), {
+        capture: true,
+        passive: true,
+      }),
       on(tableState.document.body, "pointerleave", () => BodyEvents.onpointerleave(tableState), {
         capture: true,
         passive: true,

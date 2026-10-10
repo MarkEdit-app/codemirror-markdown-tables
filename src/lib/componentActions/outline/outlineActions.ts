@@ -37,6 +37,7 @@ export class OutlineActions {
     this.removeEventListeners = Functions.each(
       on(this.tableState.window, "pointermove", (e) => this.drag(e)),
       on(this.tableState.window, "pointerup", () => this.end()),
+      on(this.tableState.window, "pointercancel", () => this.end()),
       on(this.tableState.window, "pointerleave", () => this.end()),
     )
   }
@@ -51,6 +52,7 @@ export class OutlineActions {
     this.removeEventListeners = Functions.each(
       on(this.tableState.window, "pointermove", (e) => this.drag(e)),
       on(this.tableState.window, "pointerup", () => this.end()),
+      on(this.tableState.window, "pointercancel", () => this.end()),
       on(this.tableState.window, "pointerleave", () => this.end()),
     )
   }

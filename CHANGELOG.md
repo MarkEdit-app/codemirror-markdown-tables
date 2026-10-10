@@ -12,7 +12,20 @@ The fork starts from upstream v1.0.1, including its
 The v1.0.2 entry below includes all fork-specific changes since that baseline;
 earlier entries describe upstream releases.
 
-## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.2.0...HEAD)
+## [Unreleased](https://github.com/MarkEdit-app/codemirror-markdown-tables/compare/v1.2.1...HEAD)
+
+## [1.2.1](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.2.1) - 2026-10-10
+
+### Fixed
+
+- Recognize Sidecar's synthesized primary presses even when `buttons` is zero,
+  allowing table handles to open their menus and cells to respond to taps.
+- Cancel row and column moves when pointer input is cancelled or capture is lost,
+  restoring the table without applying the interrupted move or opening a menu.
+- Clear interrupted resize interactions without applying a final click operation,
+  preserving changes already applied during the drag.
+- Allow native touch scrolling over table content and editable cells while keeping
+  drag handles reserved for table operations.
 
 ## [1.2.0](https://github.com/MarkEdit-app/codemirror-markdown-tables/releases/tag/v1.2.0) - 2026-10-07
 
